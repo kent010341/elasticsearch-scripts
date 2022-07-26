@@ -70,13 +70,15 @@ if [ "$snapshot" == "" ]; then
 fi
 
 # checking repository register
-echo "Check if the repository is registered."
-curl --silent --fail "http://$es_host:$es_port/_snapshot/$repo"
+echo "Check if the repository '$repo' is registered."
+curl --silent --fail-with-body "http://$es_host:$es_port/_snapshot/$repo"
 echo
 
-if [ $? -ne 0 ]; then
+if [ $? -eq 0 ]; then
+    echo "Repository has already registered."
+else
     echo "Repository isn't registered. Start registering with path '$register_path'"
-    curl --fail -X PUT "http://$es_host:$es_port/_snapshot/$repo" \
+    curl --fail-with-body -X PUT "http://$es_host:$es_port/_snapshot/$repo" \
         -H "Content-Type: application/json" \
         -d "{\"type\":\"fs\",\"settings\":{\"location\":\"$register_path\"}}"
     echo
@@ -88,15 +90,32 @@ if [ $? -ne 0 ]; then
     fi
 fi
 
+# Check if snapshot exists
+echo "Check if snapshot '$snapshot' exists."
+curl --silent --fail "http://$es_host:$es_port/_snapshot/$repo/$snapshot" > /dev/null
+
+if [ $? -eq 0 ]; then
+    echo "Snapshot '$snapshot' exists. Start deleting."
+    curl --fail-with-body -X DELETE "http://$es_host:$es_port/_snapshot/$repo/$snapshot"
+    echo
+
+    if [ $? -ne 0 ]; then
+        echo "delete failed."
+        exit 1
+    fi
+else
+    echo "Snapshot '$snapshot' doesn't exist."
+fi
+
 # exporting index
 if [ "$index" == "" ]; then
     echo "Start creating snapshot."
-    curl --fail -X PUT "http://$es_host:$es_port/_snapshot/$repo/$snapshot" \
+    curl --fail-with-body -X PUT "http://$es_host:$es_port/_snapshot/$repo/$snapshot" \
         -H "Content-Type: application/json"
 else
     echo "Start taking snapshot with index '$index'"
 
-    curl --fail -X PUT "http://$es_host:$es_port/_snapshot/$repo/$snapshot" \
+    curl --fail-with-body -X PUT "http://$es_host:$es_port/_snapshot/$repo/$snapshot" \
         -H "Content-Type: application/json" \
         -d "{\"indices\":[\"$index\"]}"
 fi
@@ -128,7 +147,7 @@ fi
 
 # delete snapshot
 echo "Start deleting snapshot."
-curl --fail -X DELETE "http://$es_host:$es_port/_snapshot/$repo/$snapshot"
+curl --fail-with-body -X DELETE "http://$es_host:$es_port/_snapshot/$repo/$snapshot"
 echo
 
 if [ $? -ne 0 ]; then
