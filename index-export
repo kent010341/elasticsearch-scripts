@@ -1,0 +1,139 @@
+#!/bin/bash
+
+# default value
+es_host=127.0.0.1
+es_port=9200
+es_container=elasticsearch
+register_path="/usr/share/elasticsearch/backup"
+
+while (($#)); do
+    case $1 in
+        "--eshost" | "-eh")
+            shift
+            es_host=$1
+            shift
+        ;;
+        "--esport" | "-ep")
+            shift
+            es_port=$1
+            shift
+        ;;
+        "--escontainer" | "-ec")
+            shift
+            es_container=$1
+            shift
+        ;;
+        "--index" | "-i")
+            shift
+            index=$1
+            shift
+        ;;
+        "--repo" | "-r")
+            shift
+            repo=$1
+            shift
+        ;;
+        "--snapshot" | "-s")
+            shift
+            snapshot=$1
+            shift
+        ;;
+        "--register-path" | "-rp")
+            shift
+            register_path=$1
+            shift
+        ;;
+        "--output" | "-o")
+            shift
+            output=$1
+            shift
+        ;;
+        "--help" | "-h")
+            echo "this is help. [FIXME]"
+            exit 0
+        ;;
+        *)
+            echo "unknown argument '$1'"
+            echo "Use --help (or -h) to get the usage information."
+            exit 1
+    esac
+done
+
+if [ "$repo" == "" ]; then
+    echo "Option --repo is required."
+    exit 1
+fi
+
+if [ "$snapshot" == "" ]; then
+    echo "Option --snapshot is required."
+    exit 1
+fi
+
+# checking repository register
+echo "Check if the repository is registered."
+curl --silent --fail "http://$es_host:$es_port/_snapshot/$repo"
+echo
+
+if [ $? -ne 0 ]; then
+    echo "Repository isn't registered. Start registering with path '$register_path'"
+    curl --fail -X PUT "http://$es_host:$es_port/_snapshot/$repo" \
+        -H "Content-Type: application/json" \
+        -d "{\"type\":\"fs\",\"settings\":{\"location\":\"$register_path\"}}"
+    echo
+    if [ $? -eq 0 ]; then
+        echo "Register succeed."
+    else
+        echo "Register failed."
+        exit 1
+    fi
+fi
+
+# exporting index
+if [ "$index" == "" ]; then
+    echo "Start creating snapshot."
+    curl --fail -X PUT "http://$es_host:$es_port/_snapshot/$repo/$snapshot" \
+        -H "Content-Type: application/json"
+else
+    echo "Start taking snapshot with index '$index'"
+
+    curl --fail -X PUT "http://$es_host:$es_port/_snapshot/$repo/$snapshot" \
+        -H "Content-Type: application/json" \
+        -d "{\"indices\":[\"$index\"]}"
+fi
+echo
+
+if [ $? -eq 0 ]; then
+    echo "Creating snapshot succeed."
+else
+    echo "Creating snapshot failed."
+    exit 1
+fi
+
+# Copy from docker container
+if [ "$output" == "" ]; then
+    if [ "$index" == "" ]; then
+        output="backup_$(date +"%Y%m%d-%H%M%S")"
+    else
+        output="backup_$index"
+    fi
+fi
+
+echo "Copy folder '$register_path' from docker continer '$es_container' to '$output'"
+docker cp $es_container:$register_path ./$output
+
+if [ $? -ne 0 ]; then
+    echo "copied failed."
+    exit 1
+fi
+
+# delete snapshot
+echo "Start deleting snapshot."
+curl --fail -X DELETE "http://$es_host:$es_port/_snapshot/$repo/$snapshot"
+echo
+
+if [ $? -ne 0 ]; then
+    echo "delete failed."
+    exit 1
+fi
+
+echo "Done!!"
