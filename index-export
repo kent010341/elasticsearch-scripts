@@ -49,7 +49,25 @@ while (($#)); do
             shift
         ;;
         "--help" | "-h")
-            echo "this is help. [FIXME]"
+            echo "Required options:"
+            echo "    --snapshot <snapshot>, -s <snapshot>"
+            echo "        Snapshot name."
+            echo "    --repo <repository>, -r <repository>"
+            echo "        Snapshot repository name."
+            echo
+            echo "Optional options:"
+            echo "    --eshost <host>, -eh <host>"
+            echo "        ElasticSearch service host. Default: 127.0.0.1"
+            echo "    --esport <port>, -ep <port>"
+            echo "        ElasticSearch service port. Default: 9200"
+            echo "    --escontainer <container name>, -ec <continer name>"
+            echo "        ElasticSearch docker container name. Default: elasticsearch"
+            echo "    --index <index>, -i <index>"
+            echo "        Index that specified to be exported. Defaultly export all indices."
+            echo "    --register-path <path>, -rp <path>"
+            echo "        Path of snapshot repository. Used for registering repository if repository doesn't exists. Default: /usr/share/elasticsearch/backup"
+            echo "    --output <path>, -o <path>"
+            echo "        Output path. Defaultly use backup_{time} if index not specified, and use backup_{index} if index is specified."
             exit 0
         ;;
         *)
