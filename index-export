@@ -90,19 +90,21 @@ fi
 # checking repository register
 echo "Check if the repository '$repo' is registered."
 curl --silent --fail-with-body "http://$es_host:$es_port/_snapshot/$repo"
-echo
 
 if [ $? -eq 0 ]; then
+    echo
     echo "Repository has already registered."
 else
     echo "Repository isn't registered. Start registering with path '$register_path'"
     curl --fail-with-body -X PUT "http://$es_host:$es_port/_snapshot/$repo" \
         -H "Content-Type: application/json" \
         -d "{\"type\":\"fs\",\"settings\":{\"location\":\"$register_path\"}}"
-    echo
+    
     if [ $? -eq 0 ]; then
+        echo
         echo "Register succeed."
     else
+        echo
         echo "Register failed."
         exit 1
     fi
@@ -113,11 +115,12 @@ echo "Check if snapshot '$snapshot' exists."
 curl --silent --fail "http://$es_host:$es_port/_snapshot/$repo/$snapshot" > /dev/null
 
 if [ $? -eq 0 ]; then
+    echo
     echo "Snapshot '$snapshot' exists. Start deleting."
     curl --fail-with-body -X DELETE "http://$es_host:$es_port/_snapshot/$repo/$snapshot"
-    echo
 
     if [ $? -ne 0 ]; then
+        echo
         echo "delete failed."
         exit 1
     fi
@@ -137,11 +140,12 @@ else
         -H "Content-Type: application/json" \
         -d "{\"indices\":[\"$index\"]}"
 fi
-echo
 
 if [ $? -eq 0 ]; then
+    echo
     echo "Creating snapshot succeed."
 else
+    echo
     echo "Creating snapshot failed."
     exit 1
 fi
@@ -166,11 +170,12 @@ fi
 # delete snapshot
 echo "Start deleting snapshot."
 curl --fail-with-body -X DELETE "http://$es_host:$es_port/_snapshot/$repo/$snapshot"
-echo
 
 if [ $? -ne 0 ]; then
+    echo
     echo "delete failed."
     exit 1
 fi
 
+echo
 echo "Done!!"
