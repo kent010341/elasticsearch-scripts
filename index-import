@@ -1,0 +1,190 @@
+#!/bin/bash
+
+# default value
+es_host=127.0.0.1
+es_port=9200
+es_container=elasticsearch
+register_path="/usr/share/elasticsearch/backup"
+
+while (($#)); do
+    case $1 in
+        "--eshost" | "-eh")
+            shift
+            es_host=$1
+            shift
+        ;;
+        "--esport" | "-ep")
+            shift
+            es_port=$1
+            shift
+        ;;
+        "--escontainer" | "-ec")
+            shift
+            es_container=$1
+            shift
+        ;;
+        "--index" | "-i")
+            shift
+            index=$1
+            shift
+        ;;
+        "--repo" | "-r")
+            shift
+            repo=$1
+            shift
+        ;;
+        "--snapshot" | "-s")
+            shift
+            snapshot=$1
+            shift
+        ;;
+        "--register-path" | "-rp")
+            shift
+            register_path=$1
+            shift
+        ;;
+        "--target" | "-t")
+            shift
+            target=$1
+            shift
+        ;;
+        "--help" | "-h")
+            echo "Required options:"
+            echo "    --snapshot <snapshot>, -s <snapshot>"
+            echo "        Snapshot name."
+            echo "    --repo <repository>, -r <repository>"
+            echo "        Snapshot repository name."
+            echo "    --target <path>, -t <path>"
+            echo "        Target path of backup folder."
+            echo
+            echo "Optional options:"
+            echo "    --eshost <host>, -eh <host>"
+            echo "        ElasticSearch service host. Default: 127.0.0.1"
+            echo "    --esport <port>, -ep <port>"
+            echo "        ElasticSearch service port. Default: 9200"
+            echo "    --escontainer <container name>, -ec <continer name>"
+            echo "        ElasticSearch docker container name. Default: elasticsearch"
+            echo "    --index <index>, -i <index>"
+            echo "        Index that specified to be imported. Defaultly import all indices."
+            echo "    --register-path <path>, -rp <path>"
+            echo "        Path of snapshot repository. Used for registering repository if repository doesn't exists. Default: /usr/share/elasticsearch/backup"
+            exit 0
+        ;;
+        *)
+            echo "unknown argument '$1'"
+            echo "Use --help (or -h) to get the usage information."
+            exit 1
+    esac
+done
+
+if [ "$repo" == "" ]; then
+    echo "Option --repo is required."
+    exit 1
+fi
+
+if [ "$snapshot" == "" ]; then
+    echo "Option --snapshot is required."
+    exit 1
+fi
+
+if [ "$target" == "" ]; then
+    echo "Option --target is required."
+    exit 1
+fi
+
+# checking repository register
+echo "Check if the repository '$repo' is registered."
+curl --silent --fail-with-body "http://$es_host:$es_port/_snapshot/$repo"
+echo
+
+if [ $? -eq 0 ]; then
+    echo "Repository has already registered."
+else
+    echo "Repository isn't registered. Start registering with path '$register_path'"
+    curl --fail-with-body -X PUT "http://$es_host:$es_port/_snapshot/$repo" \
+        -H "Content-Type: application/json" \
+        -d "{\"type\":\"fs\",\"settings\":{\"location\":\"$register_path\"}}"
+    echo
+    if [ $? -eq 0 ]; then
+        echo "Register succeed."
+    else
+        echo "Register failed."
+        exit 1
+    fi
+fi
+
+# Check if snapshot exists
+echo "Check if snapshot '$snapshot' exists."
+curl --silent --fail "http://$es_host:$es_port/_snapshot/$repo/$snapshot" > /dev/null
+
+if [ $? -eq 0 ]; then
+    echo "Snapshot '$snapshot' exists."
+else
+    echo "Snapshot '$snapshot' doesn't exist."
+    echo "Start creating snapshot."
+    curl --fail-with-body -X PUT "http://$es_host:$es_port/_snapshot/$repo/$snapshot" \
+        -H "Content-Type: application/json"
+    echo
+
+    if [ $? -eq 0 ]; then
+        echo "Creating snapshot succeed."
+    else
+        echo "Creating snapshot failed."
+        exit 1
+    fi
+fi
+
+docker cp $target/. $es_container:$register_path/
+
+# modify ownership
+echo "Modify ownership of snapshot repository folder."
+docker exec -i $es_container chown -R elasticsearch:root $register_path
+
+echo "Restart elasticsearch..."
+docker restart $es_container
+
+is_es_start=false
+while is_es_start; do
+    curl --silent --fail-with-body "http://$es_host:$es_port"
+    if [ $? -eq 0 ]; then
+        is_es_start=true
+        echo "ElasticSearch is running."
+    else
+        echo "Waiting for ElasticSearch service."
+        sleep 1
+    fi
+done
+
+# get snapshot details
+echo "check if snapshot is loaded successfully."
+resp=$(curl --fail-with-body -X PUT "http://$es_host:$es_port/_snapshot/$repo/$snapshot")
+
+if [ $? -ne 0 ]; then
+    echo "Getting snapshot details failed."
+    exit 1
+fi
+
+if [ "$(echo $resp | grep $snapshot)" != "" ]; then
+    echo "Snapshot is loaded."
+else
+    echo "Snapshot doesn't exist."
+    exit 1
+fi
+
+# restore
+echo "Start restoring."
+
+if [ "$index" == "" ]; then
+    curl --fail-with-body -X POST "http://$es_host:$es_port/_snapshot/$repo/$snapshot/_restore" \
+        -H "Content-Type: application/json"
+else
+    curl --fail-with-body -X POST "http://$es_host:$es_port/_snapshot/$repo/$snapshot/_restore" \
+        -H "Content-Type: application/json" \
+        -d "{\"indices\":[\"$index\"]}"
+fi
+
+if [ $? -ne 0 ]; then
+    echo "Restore failed."
+fi
+
+echo "Done!!"
