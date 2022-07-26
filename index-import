@@ -95,19 +95,22 @@ fi
 # checking repository register
 echo "Check if the repository '$repo' is registered."
 curl --silent --fail-with-body "http://$es_host:$es_port/_snapshot/$repo"
-echo
 
 if [ $? -eq 0 ]; then
+    echo
     echo "Repository has already registered."
 else
+    echo
     echo "Repository isn't registered. Start registering with path '$register_path'"
     curl --fail-with-body -X PUT "http://$es_host:$es_port/_snapshot/$repo" \
         -H "Content-Type: application/json" \
         -d "{\"type\":\"fs\",\"settings\":{\"location\":\"$register_path\"}}"
-    echo
+
     if [ $? -eq 0 ]; then
+        echo
         echo "Register succeed."
     else
+        echo
         echo "Register failed."
         exit 1
     fi
@@ -124,30 +127,58 @@ else
     echo "Start creating snapshot."
     curl --fail-with-body -X PUT "http://$es_host:$es_port/_snapshot/$repo/$snapshot" \
         -H "Content-Type: application/json"
-    echo
 
     if [ $? -eq 0 ]; then
+        echo
         echo "Creating snapshot succeed."
     else
+        echo
         echo "Creating snapshot failed."
         exit 1
     fi
 fi
 
+# remove old files
+echo "Remove snapshot files at snapshot repository."
+docker exec -i $es_container rm -rf "$register_path/*"
+
+if [ $? -ne 0 ]; then
+    echo "Remove failed."
+    exit 1
+fi
+
+# copy files
+echo "Copy files from '$target' to snapshot repository folder."
 docker cp $target/. $es_container:$register_path/
+
+if [ $? -ne 0 ]; then
+    echo "Copy failed."
+    exit 1
+fi
 
 # modify ownership
 echo "Modify ownership of snapshot repository folder."
 docker exec -i $es_container chown -R elasticsearch:root $register_path
 
+if [ $? -ne 0 ]; then
+    echo "Modify failed."
+    exit 1
+fi
+
+# restart
 echo "Restart elasticsearch..."
 docker restart $es_container
 
-is_es_start=false
-while is_es_start; do
-    curl --silent --fail-with-body "http://$es_host:$es_port"
+if [ $? -ne 0 ]; then
+    echo "Restart failed."
+    exit 1
+fi
+
+is_es_start=true
+while $is_es_start; do
+    curl --silent --fail-with-body "http://$es_host:$es_port" > /dev/null
     if [ $? -eq 0 ]; then
-        is_es_start=true
+        is_es_start=false
         echo "ElasticSearch is running."
     else
         echo "Waiting for ElasticSearch service."
@@ -157,7 +188,7 @@ done
 
 # get snapshot details
 echo "check if snapshot is loaded successfully."
-resp=$(curl --fail-with-body -X PUT "http://$es_host:$es_port/_snapshot/$repo/$snapshot")
+resp=$(curl --silent --fail-with-body "http://$es_host:$es_port/_snapshot/$repo/$snapshot")
 
 if [ $? -ne 0 ]; then
     echo "Getting snapshot details failed."
@@ -184,7 +215,9 @@ else
 fi
 
 if [ $? -ne 0 ]; then
+    echo
     echo "Restore failed."
+    exit 1
 fi
 
 echo "Done!!"
