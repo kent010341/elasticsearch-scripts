@@ -247,4 +247,5 @@ if [ $from_step -le 8 ]; then
     fi
 fi
 
+echo
 echo "Done!!"
