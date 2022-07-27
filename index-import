@@ -174,11 +174,11 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-is_es_start=true
-while $is_es_start; do
+is_es_start=false
+while ! $is_es_start; do
     curl --silent --fail-with-body "http://$es_host:$es_port" > /dev/null
     if [ $? -eq 0 ]; then
-        is_es_start=false
+        is_es_start=true
         echo "ElasticSearch is running."
     else
         echo "Waiting for ElasticSearch service."
