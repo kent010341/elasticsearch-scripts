@@ -65,11 +65,11 @@ while (($#)); do
             echo
             echo "Optional options:"
             echo "    --eshost <host>, -eh <host>"
-            echo "        ElasticSearch service host. Default: 127.0.0.1"
+            echo "        Elasticsearch service host. Default: 127.0.0.1"
             echo "    --esport <port>, -ep <port>"
-            echo "        ElasticSearch service port. Default: 9200"
+            echo "        Elasticsearch service port. Default: 9200"
             echo "    --escontainer <container name>, -ec <continer name>"
-            echo "        ElasticSearch docker container name. Default: elasticsearch"
+            echo "        Elasticsearch docker container name. Default: elasticsearch"
             echo "    --index <index>, -i <index>"
             echo "        Index that specified to be imported. Defaultly import all indices."
             echo "    --register-path <path>, -rp <path>"
@@ -153,7 +153,8 @@ fi
 # remove old files
 if [ $from_step -le 3 ]; then
     echo "[Step 3] Remove snapshot files at snapshot repository."
-    docker exec -i $es_container rm -rf "$register_path/*"
+    docker exec -i $es_container rm -rf "$register_path"
+    docker exec -i $es_container mkdir "$register_path"
 
     if [ $? -ne 0 ]; then
         echo "[Step 3] Remove failed. You can retry from this step with option '--from-step 3'."
@@ -198,9 +199,9 @@ if [ $from_step -le 6 ]; then
         curl --silent --fail-with-body "http://$es_host:$es_port" > /dev/null
         if [ $? -eq 0 ]; then
             is_es_start=true
-            echo "[Step 6] ElasticSearch is running."
+            echo "[Step 6] Elasticsearch is running."
         else
-            echo "[Step 6] Waiting for ElasticSearch service."
+            echo "[Step 6] Waiting for Elasticsearch service."
             sleep 1
         fi
     done
@@ -212,7 +213,7 @@ if [ $from_step -le 7 ]; then
     resp=$(curl --silent --fail-with-body "http://$es_host:$es_port/_snapshot/$repo/$snapshot")
 
     if [ $? -ne 0 ]; then
-        echo "[Step 7] Getting snapshot details failed.  You can retry from this step with option '--from-step 7'."
+        echo "[Step 7] Getting snapshot details failed.  You can retry from this step with option '--from-step 7', or restart Elasticsearch again with option '--from-step 6'."
         echo "[Step 7] Error response:"
         echo $resp
         exit 1
@@ -221,7 +222,7 @@ if [ $from_step -le 7 ]; then
     if [ "$(echo $resp | grep $snapshot)" != "" ]; then
         echo "[Step 7] Snapshot is loaded."
     else
-        echo "[Step 7] Snapshot doesn't exist. You can retry from this step with option '--from-step 7'."
+        echo "[Step 7] Snapshot doesn't exist. You can retry from this step with option '--from-step 7', or restart Elasticsearch again with option '--from-step 6'."
         exit 1
     fi
 fi
@@ -236,12 +237,12 @@ if [ $from_step -le 8 ]; then
     else
         curl --fail-with-body -X POST "http://$es_host:$es_port/_snapshot/$repo/$snapshot/_restore?wait_for_completion=true" \
             -H "Content-Type: application/json" \
-            -d "{\"indices\":[\"$index\"]}"
+            -d "{\"indices\":\"$index\"}"
     fi
 
     if [ $? -ne 0 ]; then
         echo
-        echo "[Step 8] Restore failed. You can retry from this step with option '--from-step 8'."
+        echo "[Step 8] Restore failed. You can retry from this step with option '--from-step 8', or restart Elasticsearch again with option '--from-step 6'."
         exit 1
     fi
 fi

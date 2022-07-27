@@ -1,2 +1,2 @@
 # elasticsearch-scripts
-Bash scripts for ElasticSearch
+Bash scripts for Elasticsearch
