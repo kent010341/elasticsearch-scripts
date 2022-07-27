@@ -136,7 +136,7 @@ if [ $from_step -le 2 ]; then
     else
         echo "[Step 2] Snapshot '$snapshot' doesn't exist."
         echo "[Step 2] Start creating snapshot."
-        curl --fail-with-body -X PUT "http://$es_host:$es_port/_snapshot/$repo/$snapshot" \
+        curl --fail-with-body -X PUT "http://$es_host:$es_port/_snapshot/$repo/$snapshot?wait_for_completion=true" \
             -H "Content-Type: application/json"
 
         if [ $? -eq 0 ]; then
@@ -231,10 +231,10 @@ if [ $from_step -le 8 ]; then
     echo "[Step 8] Start restoring."
 
     if [ "$index" == "" ]; then
-        curl --fail-with-body -X POST "http://$es_host:$es_port/_snapshot/$repo/$snapshot/_restore" \
+        curl --fail-with-body -X POST "http://$es_host:$es_port/_snapshot/$repo/$snapshot/_restore?wait_for_completion=true" \
             -H "Content-Type: application/json"
     else
-        curl --fail-with-body -X POST "http://$es_host:$es_port/_snapshot/$repo/$snapshot/_restore" \
+        curl --fail-with-body -X POST "http://$es_host:$es_port/_snapshot/$repo/$snapshot/_restore?wait_for_completion=true" \
             -H "Content-Type: application/json" \
             -d "{\"indices\":[\"$index\"]}"
     fi
