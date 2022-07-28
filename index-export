@@ -5,6 +5,7 @@ es_host=127.0.0.1
 es_port=9200
 es_container=elasticsearch
 register_path="/usr/share/elasticsearch/backup"
+from_step=1
 
 while (($#)); do
     case $1 in
@@ -46,6 +47,11 @@ while (($#)); do
         "--output" | "-o")
             shift
             output=$1
+            shift
+        ;;
+        "--from-step" | "-f")
+            shift
+            from_step=$1
             shift
         ;;
         "--help" | "-h")
