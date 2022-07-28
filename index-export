@@ -104,6 +104,7 @@ if [ $from_step -le 1 ]; then
         echo
         echo "[Step 1] Repository has already registered."
     else
+        echo
         echo "[Step 1] Repository isn't registered. Start registering with path '$register_path'"
         curl --fail-with-body -X PUT "http://$es_host:$es_port/_snapshot/$repo" \
             -H "Content-Type: application/json" \
@@ -126,12 +127,10 @@ if [ $from_step -le 2 ]; then
     curl --silent --fail "http://$es_host:$es_port/_snapshot/$repo/$snapshot" > /dev/null
 
     if [ $? -eq 0 ]; then
-        echo
         echo "[Step 2] Snapshot '$snapshot' exists. Start deleting."
         curl --fail-with-body -X DELETE "http://$es_host:$es_port/_snapshot/$repo/$snapshot"
 
         if [ $? -ne 0 ]; then
-            echo
             echo "[Step 2] delete failed. You can retry from this step with option '--from-step 2'."
             exit 1
         fi
@@ -143,11 +142,13 @@ fi
 # exporting index
 if [ $from_step -le 3 ]; then
     if [ "$index" == "" ]; then
+        echo
         echo "[Step 3] Start creating snapshot."
         curl --fail-with-body -X PUT "http://$es_host:$es_port/_snapshot/$repo/$snapshot?wait_for_completion=true" \
             -H "Content-Type: application/json"
     else
-        echo "[Step 3] Start taking snapshot with index '$index'"
+        echo
+        echo "[Step 3] Start creating snapshot with index '$index'"
 
         curl --fail-with-body -X PUT "http://$es_host:$es_port/_snapshot/$repo/$snapshot?wait_for_completion=true" \
             -H "Content-Type: application/json" \
