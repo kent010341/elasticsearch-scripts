@@ -207,3 +207,4 @@ fi
 
 echo
 echo "Done!!"
+echo "Repository name: $repo, Snapshot name: $snapshot, index: $index, output: $output"
