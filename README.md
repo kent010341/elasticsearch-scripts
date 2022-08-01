@@ -4,10 +4,8 @@ Bash scripts for Elasticsearch
 ## index-export
 
 ### Required options:
-* `--repo <repository>, -r <repository>`  
-  Snapshot repository name.
-* `--snapshot <snapshot>, -s <snapshot>`  
-  Snapshot name.  
+* `--index <index>, -i <index>`  
+  Index that specified to be exported.
 
 ### Optional options:
 * `--eshost <host>, -eh <host>`  
@@ -15,30 +13,34 @@ Bash scripts for Elasticsearch
 * `--esport <port>, -ep <port>`  
   Elasticsearch service port. Default: 9200
 * `--escontainer <container name>, -ec <continer name>`  
-  Elasticsearch docker container name. Default: elasticsearch
-* `--index <index>, -i <index>`  
-  Index that specified to be exported. Defaultly export all indices.
+  Elasticsearch docker container name. Default: elasticsearch  
+* `--repo <repository>, -r <repository>`  
+  Snapshot repository name. Default: backup_repo
+* `--snapshot <snapshot>, -s <snapshot>`  
+  Snapshot name. Default: snapshot_{index}
 * `--register-path <path>, -rp <path>`  
   Path of snapshot repository. Used for registering repository if repository doesn't exists. Default: /usr/share/elasticsearch/backup
 * `--output <path>, -o <path>`  
-  Output path. Defaultly use backup_{time} if index not specified, and use backup_{index} if index is specified.
+  Output path. Default: backup_{index}
 * `--from-step <step>, -f <step>`  
   Start from which step. Default: 1
 
 ### Sample Usage
 ```
-./index-export --repo backup_repo --snapshot sys_snapshot 
+./index-export --index index-2022.07.27
 ```
 
 ## index-import
 
 ### Required options:
-* `--snapshot <snapshot>, -s <snapshot>`  
-  Snapshot name.
 * `--repo <repository>, -r <repository>`  
   Snapshot repository name.
+* `--snapshot <snapshot>, -s <snapshot>`  
+  Snapshot name.
 * `--target <path>, -t <path>`  
   Target path of backup folder.
+* `--index <index>, -i <index>`  
+  Index that specified to be imported.
 
 ### Optional options:
 * `--eshost <host>, -eh <host>`  
@@ -47,8 +49,6 @@ Bash scripts for Elasticsearch
   Elasticsearch service port. Default: 9200
 * `--escontainer <container name>, -ec <continer name>`  
   Elasticsearch docker container name. Default: elasticsearch
-* `--index <index>, -i <index>`  
-  Index that specified to be imported. Defaultly import all indices.
 * `--register-path <path>, -rp <path>`  
   Path of snapshot repository. Used for registering repository if repository doesn't exists. Default: /usr/share/elasticsearch/backup
 * `--from-step <step>, -f <step>`  
@@ -56,5 +56,5 @@ Bash scripts for Elasticsearch
 
 ### Sample Usage
 ```
-./index-import --repo backup_repo --snapshot sys_snapshot --target ./sys-backup-2022.07.27
+./index-import --repo backup_repo --snapshot sys_snapshot --target ./backup_index-2022.07.27 --index index-2022.07.27
 ```
