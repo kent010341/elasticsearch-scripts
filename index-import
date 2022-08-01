@@ -100,6 +100,11 @@ if [ "$target" == "" ]; then
     exit 1
 fi
 
+if [ "$index" == "" ]; then
+    echo "--index is required."
+    exit 1
+fi
+
 # checking repository register
 if [ $from_step -le 1 ]; then
     echo "[Step 1] Check if the repository '$repo' is registered."
