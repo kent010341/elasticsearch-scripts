@@ -112,6 +112,7 @@ if [ $from_step -le 1 ]; then
 
     if [ "$(echo $resp | grep " $index ")" != "" ]; then
         echo "[Step 1] Index '$index' exists. You can remove it by 'DELETE http://$es_host:$es_port/$index'."
+        exit 1
     else
         echo "[Step 1] Index '$index' doesn't exist."
     fi
