@@ -160,7 +160,7 @@ fi
 
 # register repository
 if [ $from_step -le 5 ]; then
-    echo "[Step 5] Check if repository has registered."
+    echo "[Step 5] Register repository."
     curl --fail-with-body -X PUT "http://$es_host:$es_port/_snapshot/$repo" \
         -H "Content-Type: application/json" \
         -d "{\"type\":\"fs\",\"settings\":{\"location\":\"$register_path\"}}"

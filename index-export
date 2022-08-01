@@ -128,6 +128,7 @@ fi
 
 # checking repository register
 if [ $from_step -le 3 ]; then
+    echo "[Step 3] Register repository."
     curl --fail-with-body -X PUT "http://$es_host:$es_port/_snapshot/$repo" \
         -H "Content-Type: application/json" \
         -d "{\"type\":\"fs\",\"settings\":{\"location\":\"$register_path\"}}"
