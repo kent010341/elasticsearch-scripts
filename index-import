@@ -56,12 +56,14 @@ while (($#)); do
         ;;
         "--help" | "-h")
             echo "Required options:"
-            echo "    --snapshot <snapshot>, -s <snapshot>"
-            echo "        Snapshot name."
             echo "    --repo <repository>, -r <repository>"
             echo "        Snapshot repository name."
+            echo "    --snapshot <snapshot>, -s <snapshot>"
+            echo "        Snapshot name."
             echo "    --target <path>, -t <path>"
             echo "        Target path of backup folder."
+            echo "    --index <index>, -i <index>"
+            echo "        Index that specified to be imported."
             echo
             echo "Optional options:"
             echo "    --eshost <host>, -eh <host>"
@@ -70,8 +72,6 @@ while (($#)); do
             echo "        Elasticsearch service port. Default: 9200"
             echo "    --escontainer <container name>, -ec <continer name>"
             echo "        Elasticsearch docker container name. Default: elasticsearch"
-            echo "    --index <index>, -i <index>"
-            echo "        Index that specified to be imported. Defaultly import all indices."
             echo "    --register-path <path>, -rp <path>"
             echo "        Path of snapshot repository. Used for registering repository if repository doesn't exists. Default: /usr/share/elasticsearch/backup"
             echo "    --from-step <step>, -f <step>"
@@ -100,7 +100,7 @@ if [ "$target" == "" ]; then
     exit 1
 fi
 
-# Step 1: checking repository register
+# checking repository register
 if [ $from_step -le 1 ]; then
     echo "[Step 1] Check if the repository '$repo' is registered."
     curl --silent --fail-with-body "http://$es_host:$es_port/_snapshot/$repo"

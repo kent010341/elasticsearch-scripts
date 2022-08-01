@@ -33,12 +33,14 @@ Bash scripts for Elasticsearch
 ## index-import
 
 ### Required options:
-* `--snapshot <snapshot>, -s <snapshot>`  
-  Snapshot name.
 * `--repo <repository>, -r <repository>`  
   Snapshot repository name.
+* `--snapshot <snapshot>, -s <snapshot>`  
+  Snapshot name.
 * `--target <path>, -t <path>`  
   Target path of backup folder.
+* `--index <index>, -i <index>`  
+  Index that specified to be imported.
 
 ### Optional options:
 * `--eshost <host>, -eh <host>`  
@@ -47,8 +49,6 @@ Bash scripts for Elasticsearch
   Elasticsearch service port. Default: 9200
 * `--escontainer <container name>, -ec <continer name>`  
   Elasticsearch docker container name. Default: elasticsearch
-* `--index <index>, -i <index>`  
-  Index that specified to be imported. Defaultly import all indices.
 * `--register-path <path>, -rp <path>`  
   Path of snapshot repository. Used for registering repository if repository doesn't exists. Default: /usr/share/elasticsearch/backup
 * `--from-step <step>, -f <step>`  
