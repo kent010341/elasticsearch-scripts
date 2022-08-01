@@ -145,7 +145,6 @@ fi
 
 # creating snapshot
 if [ $from_step -le 4 ]; then
-    echo
     echo "[Step 4] Start creating snapshot with index '$index'"
 
     curl --fail-with-body -X PUT "http://$es_host:$es_port/_snapshot/$repo/$snapshot?wait_for_completion=true" \
