@@ -27,7 +27,7 @@ Bash scripts for Elasticsearch
 
 ### Sample Usage
 ```
-./index-export --repo backup_repo --snapshot sys_snapshot 
+./index-export --index index-2022.07.27
 ```
 
 ## index-import
@@ -56,5 +56,5 @@ Bash scripts for Elasticsearch
 
 ### Sample Usage
 ```
-./index-import --repo backup_repo --snapshot sys_snapshot --target ./sys-backup-2022.07.27
+./index-import --repo backup_repo --snapshot sys_snapshot --target ./backup_index-2022.07.27 --index index-2022.07.27
 ```
