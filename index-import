@@ -85,22 +85,22 @@ while (($#)); do
     esac
 done
 
-if [ "$repo" == "" ]; then
+if [ -z "$repo" ]; then
     echo "Option --repo is required."
     exit 1
 fi
 
-if [ "$snapshot" == "" ]; then
+if [ -z "$snapshot" ]; then
     echo "Option --snapshot is required."
     exit 1
 fi
 
-if [ "$target" == "" ]; then
+if [ -z "$target" ]; then
     echo "Option --target is required."
     exit 1
 fi
 
-if [ "$index" == "" ]; then
+if [ -z "$index" ]; then
     echo "--index is required."
     exit 1
 fi
@@ -213,7 +213,7 @@ fi
 if [ $from_step -le 8 ]; then
     echo "[Step 8] Start restoring."
 
-    if [ "$index" == "" ]; then
+    if [ -z "$index" ]; then
         curl --fail-with-body -X POST "http://$es_host:$es_port/_snapshot/$repo/$snapshot/_restore?wait_for_completion=true" \
             -H "Content-Type: application/json"
     else
