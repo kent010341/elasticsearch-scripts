@@ -85,3 +85,8 @@ The steps it does:
 ```
 ./index-import --repo backup_repo --snapshot sys_snapshot --target ./backup_index-2022.07.27 --index index-2022.07.27
 ```
+
+## csv_import.py
+Import a CSV file as a Elasticsearch index.  
+
+This script use tkinter to simply ask for CSV file path, index name and Elasticsearch host.
