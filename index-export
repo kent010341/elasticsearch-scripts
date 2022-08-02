@@ -95,6 +95,10 @@ if [ -z "$snapshot" ]; then
     snapshot="snapshot_$index"
 fi
 
+if [ -z "$output" ]; then
+    output="backup_$index"
+fi
+
 # check if output folder has contents
 if [ $from_step -le 1 ]; then
     echo "[Step 1] Check if folder '$output' exists."
@@ -193,10 +197,6 @@ fi
 
 # Copy from docker container
 if [ $from_step -le 7 ]; then
-    if [ -z "$output" ]; then
-        output="backup_$index"
-    fi
-
     echo
     echo "[Step 7] Copy folder '$register_path' from docker container '$es_container' to '$output'"
     docker cp $es_container:$register_path $output
