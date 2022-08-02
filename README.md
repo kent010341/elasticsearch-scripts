@@ -9,7 +9,7 @@ Export index stored in Elasticsearch deployed with Docker as files. You can brin
 The steps it does:  
 
 1. Check if the output folder exists, if so, check if there's any content in this folder, and if there's anything in it, the exporting process will be canceled.
-2. Check if the snapshot repository is registered, if so, unregistered it.
+2. Check if the snapshot repository is registered. If so, unregistered it.
 3. Remove all contents in the folder that snapshot repository registered with. (by deleting and recreating the folder)
 4. Register snapshot repository.
 5. Create snapshot with index specified.
@@ -44,6 +44,20 @@ The steps it does:
 ```
 
 ## index-import
+
+### What it does?
+Import index to the Elasticsearch deployed with Docker.  
+
+The steps it does:  
+
+1. Check if the index has already existed. If so, the importing process will be canceled.
+2. Check if the snapshot repository is registered. If so, unregistered it.
+3. Remove all contents in the folder that snapshot repository registered with. (by deleting and recreating the folder)
+4. Copy all files from 'target' to the folder that snapshot repository registered with.
+5. Modify the ownership of the folder that snapshot repository registered with, just in case the copy-paste will have a different ownership.
+6. Register snapshot repository.
+7. Check the snapshot is loaded.
+8. Import with Restore API.
 
 ### Required options:
 * `--repo <repository>, -r <repository>`  
