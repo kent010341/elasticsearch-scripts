@@ -28,7 +28,7 @@ def ask_string(title, default):
 
 def ask_index_name(csv_path):
     base = os.path.basename(csv_path)
-    index_name = 'index_' + os.path.splitext(base)[0]
+    index_name = 'index_' + (os.path.splitext(base)[0]).lower()
 
     index_name = ask_string('Index name', index_name)
 
@@ -38,13 +38,14 @@ def ask_host():
     return ask_string('Host', ES_HOST + ':' + ES_PORT)
 
 def prepare_body(csv_path):
-    df = pd.read_csv(csv_path)
+    df = pd.read_csv(csv_path, dtype=str)
 
-    body = '{ "create" : {}}\n'
+    body = ''
     for _, row in df.iterrows():
-        body += json.dumps(row.to_dict()) + '\n'
+        body += '{"create": {}}\n' + \
+        json.dumps(row.to_dict()) + '\n'
 
-    return body[:-1] # remove newline as the end
+    return body
 
 def send_request(host, body, index_name):
     headers = {'Content-Type': 'application/x-ndjson'}
@@ -55,6 +56,7 @@ def send_request(host, body, index_name):
     except requests.exceptions.HTTPError as e:
         print(resp.text)
         print(e)
+    print(resp.text)
 
 def main():
     csv_path = ask_csv_path()
