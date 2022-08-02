@@ -153,7 +153,9 @@ if [ $from_step -le 4 ]; then
     echo "[Step 4] Copy files from '$target' to snapshot repository folder."
     docker cp $target/. $es_container:$register_path/
 
-    if [ $? -ne 0 ]; then
+    if [ $? -eq 0 ]; then
+        echo "[Step 4] Copy succeed."
+    else
         echo "[Step 4] Copy failed. You can retry from this step with option '--from-step 4'."
         exit 1
     fi
@@ -201,7 +203,7 @@ if [ $from_step -le 7 ]; then
         exit 1
     fi
 
-    if [ "$(echo $resp | grep $snapshot)" != "" ]; then
+    if [ ! -z "$(echo $resp | grep $snapshot)" ]; then
         echo "[Step 7] Snapshot is loaded."
     else
         echo "[Step 7] Snapshot doesn't exist. You can retry from this step with option '--from-step 7'."
@@ -212,17 +214,15 @@ fi
 # restore
 if [ $from_step -le 8 ]; then
     echo "[Step 8] Start restoring."
+    
+    curl --fail-with-body -X POST "http://$es_host:$es_port/_snapshot/$repo/$snapshot/_restore?wait_for_completion=true" \
+        -H "Content-Type: application/json" \
+        -d "{\"indices\":\"$index\"}"
 
-    if [ -z "$index" ]; then
-        curl --fail-with-body -X POST "http://$es_host:$es_port/_snapshot/$repo/$snapshot/_restore?wait_for_completion=true" \
-            -H "Content-Type: application/json"
+    if [ $? -eq 0 ]; then
+        echo
+        echo "[Step 8] Restore succeed."
     else
-        curl --fail-with-body -X POST "http://$es_host:$es_port/_snapshot/$repo/$snapshot/_restore?wait_for_completion=true" \
-            -H "Content-Type: application/json" \
-            -d "{\"indices\":\"$index\"}"
-    fi
-
-    if [ $? -ne 0 ]; then
         echo
         echo "[Step 8] Restore failed. You can retry from this step with option '--from-step 8'."
         exit 1
