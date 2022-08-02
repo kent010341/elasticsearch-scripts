@@ -198,7 +198,7 @@ if [ $from_step -le 7 ]; then
     fi
 
     echo
-    echo "[Step 7] Copy folder '$register_path' from docker continer '$es_container' to '$output'"
+    echo "[Step 7] Copy folder '$register_path' from docker container '$es_container' to '$output'"
     docker cp $es_container:$register_path $output
 
     if [ $? -ne 0 ]; then
