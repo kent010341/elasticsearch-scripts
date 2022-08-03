@@ -3,6 +3,7 @@
 # default value
 es_host=127.0.0.1
 es_port=9200
+repo=backup_repo
 es_container=elasticsearch
 register_path="/usr/share/elasticsearch/backup"
 from_step=0
@@ -56,8 +57,6 @@ while (($#)); do
         ;;
         "--help" | "-h")
             echo "Required options:"
-            echo "    --repo <repository>, -r <repository>"
-            echo "        Snapshot repository name."
             echo "    --snapshot <snapshot>, -s <snapshot>"
             echo "        Snapshot name."
             echo "    --target <path>, -t <path>"
@@ -72,6 +71,8 @@ while (($#)); do
             echo "        Elasticsearch service port. Default: 9200"
             echo "    --escontainer <container name>, -ec <continer name>"
             echo "        Elasticsearch docker container name. Default: elasticsearch"
+            echo "    --repo <repository>, -r <repository>"
+            echo "        Snapshot repository name. Default: backup_repo"
             echo "    --register-path <path>, -rp <path>"
             echo "        Path of snapshot repository. Used for registering repository if repository doesn't exists. Default: /usr/share/elasticsearch/backup"
             echo "    --from-step <step>, -f <step>"
@@ -84,11 +85,6 @@ while (($#)); do
             exit 1
     esac
 done
-
-if [ -z "$repo" ]; then
-    echo "Option --repo is required."
-    exit 1
-fi
 
 if [ -z "$snapshot" ]; then
     echo "Option --snapshot is required."
