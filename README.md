@@ -60,8 +60,6 @@ The steps it does:
 8. Import with Restore API.
 
 ### Required options:
-* `--repo <repository>, -r <repository>`  
-  Snapshot repository name.
 * `--snapshot <snapshot>, -s <snapshot>`  
   Snapshot name.
 * `--target <path>, -t <path>`  
@@ -76,6 +74,8 @@ The steps it does:
   Elasticsearch service port. Default: 9200
 * `--escontainer <container name>, -ec <continer name>`  
   Elasticsearch docker container name. Default: elasticsearch
+* `--repo <repository>, -r <repository>`  
+  Snapshot repository name. Default: backup_repo
 * `--register-path <path>, -rp <path>`  
   Path of snapshot repository. Used for registering repository if repository doesn't exists. Default: /usr/share/elasticsearch/backup
 * `--from-step <step>, -f <step>`  

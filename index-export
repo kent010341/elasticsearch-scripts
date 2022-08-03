@@ -135,7 +135,6 @@ if [ $from_step -le 2 ]; then
             exit 1
         fi
     else
-        echo
         echo "[Step 2] Repository hasn't registered."
     fi
 fi
@@ -144,8 +143,21 @@ fi
 if [ $from_step -le 3 ]; then
     echo "[Step 3] Remove snapshot files at snapshot repository."
     docker exec -i $es_container rm -rf "$register_path"
+
+    if [ $? -eq 0 ]; then
+        echo "[Step 3] Remove succeed."
+    else
+        echo "[Step 3] Remove failed."
+        exit 1
+    fi
+
     docker exec -i $es_container mkdir "$register_path"
     docker exec -i $es_container chown -R elasticsearch:root "$register_path"
+
+    if [ $? -ne 0 ]; then
+        echo "[Step 3] Modify ownership failed."
+        exit 1
+    fi
 fi
 
 # checking repository register
