@@ -3,7 +3,16 @@ Bash scripts for Elasticsearch
 
 ## index-export
 
-### What it does?
+### Prerequisition
+Setup the repository path `path.repo` in config/elasticsearch.yml.  
+e.g.,  
+```
+cluster.name: "docker-cluster"
+network.host: 0.0.0.0
+path.repo: "/usr/share/elasticsearch/backup"
+```
+
+### What does it do?
 Export index stored in Elasticsearch deployed with Docker as files. You can bring them anywhere and restore them anytime you want!  
 
 The steps it does:  
@@ -45,7 +54,16 @@ The steps it does:
 
 ## index-import
 
-### What it does?
+### Prerequisition
+Setup the repository path `path.repo` in config/elasticsearch.yml.  
+e.g.,  
+```
+cluster.name: "docker-cluster"
+network.host: 0.0.0.0
+path.repo: "/usr/share/elasticsearch/backup"
+```
+
+### What does it do?
 Import index to the Elasticsearch deployed with Docker.  
 
 The steps it does:  
