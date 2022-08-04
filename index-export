@@ -8,21 +8,28 @@ es_container=elasticsearch
 register_path="/usr/share/elasticsearch/backup"
 from_step=1
 
+is_eh_set=false
+is_ep_set=false
+is_ec_set=false
+
 while (($#)); do
     case $1 in
         "--eshost" | "-eh")
             shift
             es_host=$1
+            is_eh_set=true
             shift
         ;;
         "--esport" | "-ep")
             shift
             es_port=$1
+            is_ep_set=true
             shift
         ;;
         "--escontainer" | "-ec")
             shift
             es_container=$1
+            is_ec_set=true
             shift
         ;;
         "--index" | "-i")
@@ -101,25 +108,37 @@ fi
 
 # checking docker container using elasticsearch image
 if [ $from_step -le 1 ]; then
-    echo "[Step 1] Checking running Elasticsearch container."
-
-    image_list=$(docker ps --format "{{.Image}}")
-    es_count=$(echo $image_list | grep "elasticsearch" | wc -l)
-    
-    if [ $es_count -gt 1 ]; then
-        echo "Warning! You have more than 1 running elasticsearch container!"
-        echo "Use default values. Container name: '$es_container', host: $es_host, port: $es_port"
-    elif [ $es_count -eq 0 ]; then
-        echo "Warning! You don't have any running elasticsearch container!"
-        echo "Use default values. Container name: '$es_container', host: $es_host, port: $es_port"
+    if $is_ec_set && $is_eh_set && $is_ep_set; then
+        echo "[Step 1] Container name, host, port are specified. Skip step 1."
     else
-        es_image=$(docker ps --format "{{.Names}} {{.Ports}} {{.Image}}" | grep "elasticsearch")
-        es_container=$(echo $es_image | cut -d" " -f 1)
-        es_network=$(echo $es_image | cut -d" " -f 2 | cut -d"-" -f 1)
-        es_host=$(echo $es_network | cut -d":" -f 1)
-        es_port=$(echo $es_network | cut -d":" -f 2)
+        echo "[Step 1] Checking running Elasticsearch container."
 
-        echo "Found 1 running Elasticsearch container. Container name: '$es_container', host: $es_host, port: $es_port"
+        image_list=$(docker ps --format "{{.Image}}")
+        es_count=$(echo $image_list | grep "elasticsearch" | wc -l)
+        
+        if [ $es_count -gt 1 ]; then
+            echo "[Step 1] Warning! You have more than 1 running container using image conatins string 'elasticsearch'!"
+            echo "[Step 1] Use values: container name: '$es_container', host: $es_host, port: $es_port"
+        elif [ $es_count -eq 0 ]; then
+            echo "[Step 1] Warning! You don't have any running container using image conatins string 'elasticsearch'!"
+            echo "[Step 1] Use values: container name: '$es_container', host: $es_host, port: $es_port"
+        else
+            es_image=$(docker ps --format "{{.Names}} {{.Ports}} {{.Image}}" | grep "elasticsearch")
+            if ! $is_ec_set; then
+                es_container=$(echo $es_image | cut -d" " -f 1)
+            fi
+            es_network=$(echo $es_image | cut -d" " -f 2 | cut -d"-" -f 1)
+            
+            if ! $is_eh_set; then
+                es_host=$(echo $es_network | cut -d":" -f 1)
+            fi
+
+            if ! $is_ep_set; then
+                es_port=$(echo $es_network | cut -d":" -f 2)
+            fi
+
+            echo "[Step 1] Found 1 running Elasticsearch container. Container name: '$es_container', host: $es_host, port: $es_port"
+        fi
     fi
 fi
 
