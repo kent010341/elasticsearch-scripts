@@ -119,10 +119,10 @@ if [ $from_step -le 1 ]; then
         es_count=$(echo $image_list | grep "elasticsearch" | wc -l)
         
         if [ $es_count -gt 1 ]; then
-            echo "[Step 1] Warning! You have more than 1 running container using image conatins string 'elasticsearch'!"
+            echo "[Step 1] Warning! You have more than 1 running container using image contains string 'elasticsearch'!"
             echo "[Step 1] Use values: container name: '$es_container', host: $es_host, port: $es_port"
         elif [ $es_count -eq 0 ]; then
-            echo "[Step 1] Warning! You don't have any running container using image conatins string 'elasticsearch'!"
+            echo "[Step 1] Warning! You don't have any running container using image contains string 'elasticsearch'!"
             echo "[Step 1] Use values: container name: '$es_container', host: $es_host, port: $es_port"
         else
             es_image=$(docker ps --format "{{.Names}} {{.Ports}} {{.Image}}" | grep "elasticsearch")
